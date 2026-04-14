@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COI Request — Jet Mobile Engineering</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 32px;
+            width: 100%;
+            max-width: 480px;
+        }
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 4px;
+            margin-top: 16px;
+        }
+        label:first-of-type { margin-top: 0; }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .optional { color: #999; font-weight: 400; }
+        button {
+            margin-top: 24px;
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #93c5fd; cursor: not-allowed; }
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        .status.success { display: block; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .status.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .status.loading { display: block; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>COI Request</h1>
+        <p class="subtitle">Send a Certificate of Insurance request to a condo</p>
+
+        <form id="coiForm">
+            <label for="condo_name">Condo / Building Name</label>
+            <input type="text" id="condo_name" name="condo_name" placeholder="e.g. Pompano Towers" required>
+
+            <label for="condo_email">Condo Management Email</label>
+            <input type="email" id="condo_email" name="condo_email" placeholder="e.g. mgmt@pompano.com" required>
+
+            <label for="customer_name">Customer Name</label>
+            <input type="text" id="customer_name" name="customer_name" placeholder="e.g. Lori Bardol" required>
+
+            <label for="customer_address">Customer Address</label>
+            <input type="text" id="customer_address" name="customer_address" placeholder="e.g. 3311 SE 6th St, Pompano Beach, FL 33062" required>
+
+            <label for="job_number">Job Number <span class="optional">(optional)</span></label>
+            <input type="text" id="job_number" name="job_number" placeholder="e.g. 27185439">
+
+            <label for="item_type">Service Type <span class="optional">(optional)</span></label>
+            <input type="text" id="item_type" name="item_type" placeholder="HVAC Service" value="HVAC Service">
+
+            <button type="submit" id="submitBtn">Send COI Request</button>
+        </form>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "https://hook.us2.make.com/v9jo2n4ud9g4x7pxg29pg292wh7l9qk3";
+
+        document.getElementById("coiForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById("submitBtn");
+            const status = document.getElementById("status");
+            const form = e.target;
+
+            btn.disabled = true;
+            btn.textContent = "Sending...";
+            status.className = "status loading";
+            status.textContent = "Sending COI request...";
+
+            const data = {
+                condo_name: form.condo_name.value.trim(),
+                condo_email: form.condo_email.value.trim(),
+                customer_name: form.customer_name.value.trim(),
+                customer_address: form.customer_address.value.trim(),
+                job_number: form.job_number.value.trim() || "MANUAL",
+                item_type: form.item_type.value.trim() || "HVAC Service"
+            };
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    status.className = "status success";
+                    status.textContent = "COI request sent to " + data.condo_email + " for " + data.condo_name + ". Check Slack for confirmation.";
+                    form.reset();
+                    form.item_type.value = "HVAC Service";
+                } else {
+                    throw new Error("Server returned " + res.status);
+                }
+            } catch (err) {
+                status.className = "status error";
+                status.textContent = "Failed to send. Error: " + err.message + ". Try again or send manually.";
+            }
+
+            btn.disabled = false;
+            btn.textContent = "Send COI Request";
+        });
+    </script>
+</body>
+</html>
