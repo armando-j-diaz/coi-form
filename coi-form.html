@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COI Request — JET Mobile Engineering</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f4f6f9;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 16px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.10);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 28px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin: 24px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+
+    .field label .optional {
+      font-weight: 400;
+      color: #9ca3af;
+      font-size: 12px;
+      margin-left: 4px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: #111827;
+      background: #ffffff;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .field input::placeholder { color: #9ca3af; }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .field input.error,
+    .field select.error {
+      border-color: #ef4444;
+    }
+
+    .field-error {
+      font-size: 12px;
+      color: #ef4444;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      margin-top: 28px;
+      padding: 13px;
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-submit:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-submit:active:not(:disabled) { transform: scale(0.99); }
+    .btn-submit:disabled { background: #93c5fd; cursor: not-allowed; }
+
+    /* Status messages */
+    .status {
+      display: none;
+      margin-top: 20px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .status.success {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 28px 20px; }
+      .field-row { grid-template-columns: 1fr; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1 class="card-title">COI Request</h1>
+  <p class="card-subtitle">Send a Certificate of Insurance request to a condo</p>
+
+  <form id="coi-form" novalidate>
+
+    <!-- CONDO INFO -->
+    <div class="section-label">Condo / Building</div>
+
+    <div class="field">
+      <label for="condo_name">Condo / Building Name</label>
+      <input type="text" id="condo_name" name="condo_name"
+             placeholder="e.g. Pompano Towers" />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="condo_email">Management Email</label>
+        <input type="email" id="condo_email" name="condo_email"
+               placeholder="e.g. mgmt@pompano.com" />
+        <div class="field-error" id="condo_email-error">Enter a valid email.</div>
+      </div>
+      <div class="field">
+        <label for="condo_phone">Management Phone <span class="optional">(optional)</span></label>
+        <input type="tel" id="condo_phone" name="condo_phone"
+               placeholder="e.g. 305-555-0100" />
+      </div>
+    </div>
+
+    <!-- CUSTOMER INFO -->
+    <div class="section-label">Customer</div>
+
+    <div class="field">
+      <label for="customer_name">Customer Name</label>
+      <input type="text" id="customer_name" name="customer_name"
+             placeholder="e.g. Lori Bardol" />
+      <div class="field-error" id="customer_name-error">Customer name is required.</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="customer_email">Customer Email <span class="optional">(optional)</span></label>
+        <input type="email" id="customer_email" name="customer_email"
+               placeholder="e.g. lori@email.com" />
+        <div class="field-error" id="customer_email-error">Enter a valid email.</div>
+      </div>
+      <div class="field">
+        <label for="customer_phone">Customer Phone <span class="optional">(optional)</span></label>
+        <input type="tel" id="customer_phone" name="customer_phone"
+               placeholder="e.g. 305-555-0199" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="customer_address">Customer Address</label>
+      <input type="text" id="customer_address" name="customer_address"
+             placeholder="e.g. 3311 SE 6th St, Pompano Beach, FL 33062" />
+      <div class="field-error" id="customer_address-error">Customer address is required.</div>
+    </div>
+
+    <!-- JOB INFO -->
+    <div class="section-label">Job Details</div>
+
+    <div class="field">
+      <label for="job_number">AHS Job Number</label>
+      <input type="text" id="job_number" name="job_number"
+             placeholder="e.g. 27185439" />
+      <div class="field-error" id="job_number-error">AHS Job Number is required.</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="dispatch_job_id">Dispatch Job URL ID <span class="optional">(optional)</span></label>
+        <input type="text" id="dispatch_job_id" name="dispatch_job_id"
+               placeholder="e.g. 8675309" />
+      </div>
+      <div class="field">
+        <label for="item_type">Service Type <span class="optional">(optional)</span></label>
+        <input type="text" id="item_type" name="item_type"
+               placeholder="HVAC Service" value="HVAC Service" />
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit" id="submit-btn">Send COI Request</button>
+
+    <div class="status success" id="status-success">
+      ✅ COI request sent successfully! You'll receive a confirmation shortly.
+    </div>
+    <div class="status error" id="status-error">
+      ⚠️ Something went wrong. Please try again or contact support.
+    </div>
+
+  </form>
+</div>
+
+<script>
+  const WEBHOOK_URL = 'https://hook.us2.make.com/1oapw7giy2v88jake5kbqrov2jnhchow';
+
+  const form    = document.getElementById('coi-form');
+  const btn     = document.getElementById('submit-btn');
+  const success = document.getElementById('status-success');
+  const errBox  = document.getElementById('status-error');
+
+  // ── validation rules ──────────────────────────────────────────────────────
+  const rules = [
+    {
+      id: 'condo_email',
+      test: v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+      msg: 'Enter a valid email.',
+    },
+    {
+      id: 'customer_name',
+      test: v => v.trim().length > 0,
+      msg: 'Customer name is required.',
+    },
+    {
+      id: 'customer_email',
+      test: v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+      msg: 'Enter a valid email.',
+    },
+    {
+      id: 'customer_address',
+      test: v => v.trim().length > 0,
+      msg: 'Customer address is required.',
+    },
+    {
+      id: 'job_number',
+      test: v => v.trim().length > 0,
+      msg: 'AHS Job Number is required.',
+    },
+  ];
+
+  function validate() {
+    let valid = true;
+    rules.forEach(({ id, test, msg }) => {
+      const input = document.getElementById(id);
+      const errEl = document.getElementById(id + '-error');
+      const val   = input.value.trim();
+      if (!test(val)) {
+        input.classList.add('error');
+        if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+        valid = false;
+      } else {
+        input.classList.remove('error');
+        if (errEl) errEl.style.display = 'none';
+      }
+    });
+    return valid;
+  }
+
+  // Clear error state on input
+  rules.forEach(({ id }) => {
+    const input = document.getElementById(id);
+    if (input) input.addEventListener('input', () => {
+      input.classList.remove('error');
+      const errEl = document.getElementById(id + '-error');
+      if (errEl) errEl.style.display = 'none';
+    });
+  });
+
+  // ── submit ────────────────────────────────────────────────────────────────
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    success.style.display = 'none';
+    errBox.style.display  = 'none';
+
+    if (!validate()) return;
+
+    btn.disabled    = true;
+    btn.textContent = 'Sending…';
+
+    const payload = {
+      source:           'Website',
+      item_type:        document.getElementById('item_type').value.trim() || 'HVAC Service',
+      job_number:       document.getElementById('job_number').value.trim(),
+      dispatch_job_id:  document.getElementById('dispatch_job_id').value.trim(),
+      condo_name:       document.getElementById('condo_name').value.trim(),
+      condo_email:      document.getElementById('condo_email').value.trim(),
+      condo_phone:      document.getElementById('condo_phone').value.trim(),
+      customer_name:    document.getElementById('customer_name').value.trim(),
+      customer_email:   document.getElementById('customer_email').value.trim(),
+      customer_phone:   document.getElementById('customer_phone').value.trim(),
+      customer_address: document.getElementById('customer_address').value.trim(),
+    };
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        form.reset();
+        document.getElementById('item_type').value = 'HVAC Service';
+        success.style.display = 'block';
+        success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        throw new Error('HTTP ' + res.status);
+      }
+    } catch (err) {
+      console.error('COI form error:', err);
+      errBox.style.display = 'block';
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Send COI Request';
+    }
+  });
+</script>
+
+</body>
+</html>
