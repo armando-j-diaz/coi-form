@@ -179,7 +179,7 @@
         <label for="condo_email">Management Email</label>
         <input type="email" id="condo_email" name="condo_email"
                placeholder="e.g. mgmt@pompano.com" />
-        <div class="field-error" id="condo_email-error">Enter a valid email.</div>
+        <div class="field-error" id="condo_email-error">Management email is required.</div>
       </div>
       <div class="field">
         <label for="condo_phone">Management Phone <span class="optional">(optional)</span></label>
@@ -245,10 +245,10 @@
     <button type="submit" class="btn-submit" id="submit-btn">Send COI Request</button>
 
     <div class="status success" id="status-success">
-      ✅ COI request sent successfully! You'll receive a confirmation shortly.
+      COI request sent successfully! You'll receive a confirmation shortly.
     </div>
     <div class="status error" id="status-error">
-      ⚠️ Something went wrong. Please try again or contact support.
+      Something went wrong. Please try again or contact support.
     </div>
 
   </form>
@@ -262,12 +262,14 @@
   const success = document.getElementById('status-success');
   const errBox  = document.getElementById('status-error');
 
+  let submitting = false;
+
   // ── validation rules ──────────────────────────────────────────────────────
   const rules = [
     {
       id: 'condo_email',
-      test: v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-      msg: 'Enter a valid email.',
+      test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+      msg: 'Management email is required.',
     },
     {
       id: 'customer_name',
@@ -322,11 +324,14 @@
   // ── submit ────────────────────────────────────────────────────────────────
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (submitting) return;
+
     success.style.display = 'none';
     errBox.style.display  = 'none';
 
     if (!validate()) return;
 
+    submitting      = true;
     btn.disabled    = true;
     btn.textContent = 'Sending…';
 
@@ -365,6 +370,7 @@
     } finally {
       btn.disabled    = false;
       btn.textContent = 'Send COI Request';
+      submitting      = false;
     }
   });
 </script>
